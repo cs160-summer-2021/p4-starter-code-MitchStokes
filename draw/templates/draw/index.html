@@ -41,15 +41,20 @@
 
     // getting the URL (you may want to use for Exercise 3)
     var url = window.location.href;
+    var isSmall = true;
+    isSmall = (url.split("size=")[1]) === "small";
+    console.log(isSmall);
 
     var socket = new WebSocket(
         'ws://' + window.location.host + '/ws/draw');
 
     tool.onMouseMove = function(event) { //http://paperjs.org/reference/tool/ path examples
-        pathsDict[uid].strokeColor = color;
-        pathsDict[uid].add(event.point);
-        // You may need to add code here if you want to pass any other information.
-        socket.send("{\"x\" : " + event.point.x + ", \"y\" : " + event.point.y + ", \"uid\" : " + uid + ", \"color\" : " + "\"" + color + "\"" + "}");
+        if(isSmall) {
+            pathsDict[uid].strokeColor = color;
+            pathsDict[uid].add(event.point);
+            // You may need to add code here if you want to pass any other information.
+            socket.send("{\"x\" : " + event.point.x + ", \"y\" : " + event.point.y + ", \"uid\" : " + uid + ", \"color\" : " + "\"" + color + "\"" + "}");
+        }
     }
 
     socket.onmessage = function(receivedMessage) {
@@ -60,8 +65,8 @@
             pathsDict[received.uid] = new paper.Path();
             pathsDict[received.uid].strokeColor = received.color;
         }
-
-        if(received.uid !== uid) {
+        
+        if(received.uid !== uid && !isSmall) {
             var newPoint = new paper.Point(received.x, received.y);
             pathsDict[received.uid].add(newPoint);
         }
